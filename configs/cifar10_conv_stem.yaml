@@ -1,0 +1,5 @@
+# Baseline stem convolucional (Xiao et al., 2021): dos convoluciones 3x3 de paso 2 (130,450 parámetros).
+base: _cifar10.yaml
+model:
+  patch_embed: conv_stem
+  attention: {branches: [dot]}

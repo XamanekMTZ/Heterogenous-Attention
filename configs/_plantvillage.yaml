@@ -1,0 +1,4 @@
+base: base.yaml
+data: {name: plantvillage}
+model: {image_size: 64, patch_size: 4}
+train: {epochs: 50}

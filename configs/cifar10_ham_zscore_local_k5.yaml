@@ -1,0 +1,4 @@
+# La única fusión de scores que no colapsa (scores estandarizados, lambda aprendido) con local 5x5.
+base: cifar10_ham_zscore.yaml
+model:
+  attention: {enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

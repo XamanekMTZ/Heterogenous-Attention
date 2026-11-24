@@ -1,0 +1,4 @@
+# Espejo de cifar10_ham_sum después del softmax: A_dot v + A_bahdanau v (= 2 × weighted_output λ=0.5).
+base: cifar10_ham_sum.yaml
+model:
+  attention: {fusion: sum_output}

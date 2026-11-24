@@ -1,0 +1,5 @@
+# Baseline LocalViT (Li et al., 2021): convolución depthwise 3x3 entre las capas del MLP (126,970 parámetros).
+base: _cifar10.yaml
+model:
+  mlp_local_kernel: 3
+  attention: {branches: [dot]}

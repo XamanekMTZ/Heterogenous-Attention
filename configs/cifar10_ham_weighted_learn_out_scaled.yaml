@@ -1,0 +1,5 @@
+# Como cifar10_ham_weighted_learn_out, con la rama aditiva escalada por 1/sqrt(d). Después del softmax la
+# escala ya no decide el balance: sólo hace más uniforme la rama aditiva (≈ promedio global de v).
+base: cifar10_ham_weighted_learn_out.yaml
+model:
+  attention: {branches: [dot, additive_free_scaled]}

@@ -1,0 +1,5 @@
+# Control de capacidad de la tríada: MLP de 217 y término local 5x5.
+base: _cifar100.yaml
+model:
+  intermediate_size: 217
+  attention: {branches: [dot], enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

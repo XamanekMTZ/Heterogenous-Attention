@@ -1,0 +1,5 @@
+# Control de capacidad de plantvillage_ham_concat, como cifar10_dot_wide (MLP de 217).
+base: _plantvillage.yaml
+model:
+  intermediate_size: 217
+  attention: {branches: [dot]}

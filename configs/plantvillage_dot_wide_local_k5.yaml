@@ -1,0 +1,5 @@
+# Control de capacidad de plantvillage_ham_concat_local_k5, como cifar10_dot_wide_local_k5 (MLP de 217).
+base: _plantvillage.yaml
+model:
+  intermediate_size: 217
+  attention: {branches: [dot], enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

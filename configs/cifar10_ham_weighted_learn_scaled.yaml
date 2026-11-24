@@ -1,0 +1,4 @@
+# Como cifar10_ham_weighted_learn (λ aprendible por cabeza), con la rama aditiva escalada por 1/sqrt(d).
+base: cifar10_ham_weighted_learn.yaml
+model:
+  attention: {branches: [dot, additive_free_scaled]}

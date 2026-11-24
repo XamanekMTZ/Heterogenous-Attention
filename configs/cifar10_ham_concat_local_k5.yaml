@@ -1,0 +1,5 @@
+# ham_concat_local con vecindad 5x5: ¿la rama global (aditiva pooling) aporta algo sobre el mejor
+# término local? Se compara contra dot_local_k5 (16 semillas).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive], fusion: concat_linear, enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

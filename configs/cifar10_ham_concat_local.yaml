@@ -1,0 +1,5 @@
+# HAM (dot + aditiva pooling, concat_linear) con el enriquecimiento local: ¿la rama global aporta
+# algo cuando la localidad ya está resuelta? Se compara contra dot_local.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive], fusion: concat_linear, enrich: [local]}

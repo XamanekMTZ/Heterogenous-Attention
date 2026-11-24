@@ -1,0 +1,77 @@
+% English version of the IEEE article (IEEEtran, two-column journal). Translated from ../ieee/ (Spanish).
+% Tables:  uv run --offline python scripts/ieee_tables.py && uv run --offline python scripts/tables_en.py
+% Figures: uv run --offline python scripts/paper_figures.py --lang en --out paper/ieee_en
+% Compile: pdflatex main && bibtex main && pdflatex main && pdflatex main
+\documentclass[journal]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{adjustbox}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{./}}
+\newcommand{\var}[1]{\texttt{#1}}  % variant name (escape _ as \_)
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\dwconv}{\operatorname{DWConv}}
+\newcommand{\citep}[1]{\cite{#1}}
+\newenvironment{anchocompleto}{\par\centering}{\par}
+\newcommand{\anchocolumna}{\columnwidth}
+
+\begin{document}
+
+\title{Inductive Biases, Not Similarity Functions: A Controlled Evaluation of Performance, Scale and Calibration of Heterogeneous Attention in Small Vision Transformers}
+
+% Sin correos: esta versión se publica como preprint en el repositorio público.
+\author{Xamanek~Martínez-Marín, Jose~Adan~Hernández-Nolasco and Noel~Zacarías-Morales%
+\thanks{This paper is an extended version of our paper published in Research in Computing Science 2025, 154(6), 21--33, presented as a poster at the XVII Mexican Congress of Artificial Intelligence (COMIA 2025), Universidad Panamericana, Mexico City, Mexico, 12--16 May 2025.}%
+\thanks{This research was funded by the Secretaría de Ciencia, Humanidades, Tecnología e Innovación (SECIHTI, Mexico) through a graduate scholarship (Beca SECIHTI para posgrados de calidad) awarded to X.~Martínez-Marín}%
+\thanks{The authors are with the División Académica de Ciencias y Tecnologías de la Información (DACYTI), Universidad Juárez Autónoma de Tabasco, Cunduacán, Tabasco, Mexico (ORCID: 0009-0008-3845-3669, 0000-0003-4671-0350 and 0000-0001-7850-6587, respectively). Corresponding author: X.~Martínez-Marín.}}
+
+\markboth{Journal,~Vol.~X, No.~X, Month~2026}%
+{Inductive Biases, Not Similarity Functions, in Small ViTs}
+
+\maketitle
+
+\begin{abstract}
+Small Vision Transformers (ViTs) trained from scratch on limited data lack the locality bias of convolutional networks. Heterogeneous attention mechanisms (HAM), which combine two forms of attention within a head, were proposed to compensate, but were evaluated with a single run and no capacity control. We re-evaluate them in a 119k-parameter ViT and separate two families of heterogeneity: combining two similarity functions within a head, and adding to the output of each head terms with a different inductive bias, namely a depthwise convolution over the values (the LePE term of CSWin) and a global pooling summary. The protocol uses deterministic paired seeds (up to 48 per comparison), equal-capacity controls, Holm correction, four datasets (plus Food-101 for the fusions), and four published locality mechanisms for ViTs and a ResNet of the same size, all at the same parameter budget. The first family yields a well-controlled negative result: score fusions collapse onto one branch, and no similarity combination beats a capacity control (+0.15 points). In the second, a $5\times5$ depthwise convolution over the values adds, over an equal-capacity control, 5.3 points on CIFAR-10 (16 of 16 seeds), 5.4 on CIFAR-100 and 2.8 on SVHN, with 3.4\% more MACs. The gain holds with CutMix, which does not induce local heads at this scale, and from 119k to 3.6M parameters. The term matches LocalViT at lower cost and beats SPT+LSA, ConViT and a convolutional stem, although the ResNet stays 1.8 points ahead. The triad of pairwise similarity, global summary and neighborhood beats its capacity control by 0.61 points in a contrast declared before extending it to 48 seeds ($p=0.008$; $+0.67$ on the 32 new seeds, $p=0.025$) and is better calibrated, but at 1.78 times the epoch time it misses the cost criterion set in advance. Effects of half a point in this regime need tens of paired seeds to be resolved. The useful heterogeneity lies in inductive biases, not in similarity functions.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Vision transformers, heterogeneous attention, inductive bias, local attention, model calibration, efficient deep learning.
+\end{IEEEkeywords}
+
+\input{secciones/introduccion}
+\input{secciones/trabajos}
+\input{secciones/metodologia}
+\input{secciones/diseno}
+\input{secciones/resultados}
+\input{secciones/discusion}
+\input{secciones/conclusiones}
+
+\section*{Code and Data Availability}
+The training and analysis code, the configuration file of each variant and, for each run, the resolved configuration, the code commit, the per-epoch metrics, the test evaluation and the post-hoc analysis are openly available on GitHub at \url{https://github.com/XamanekMTZ/Heterogenous-Attention} and archived in Zenodo at \url{https://doi.org/10.5281/zenodo.24452704}
+The tables of the article are generated from those records with a single command. The datasets are public: CIFAR-10 and CIFAR-100 \cite{krizhevsky2009learning}, SVHN \cite{netzer2011reading}, PlantVillage \cite{hughes2015plantvillage} and Food-101 \cite{bossard2014food}.
+
+\bibliographystyle{IEEEtran}
+\bibliography{../referencias}
+
+% figuras numeradas S1, S2, ...
+\clearpage
+\section*{Supplementary Material}
+\setcounter{section}{0}\renewcommand{\thesection}{S\arabic{section}}\renewcommand{\theHsection}{S\arabic{section}}
+\setcounter{table}{0}\renewcommand{\thetable}{S\arabic{table}}\renewcommand{\theHtable}{S\arabic{table}}
+\setcounter{figure}{0}\renewcommand{\thefigure}{S\arabic{figure}}\renewcommand{\theHfigure}{S\arabic{figure}}
+\input{secciones/suplemento}
+
+\end{document}

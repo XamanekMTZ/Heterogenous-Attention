@@ -1,0 +1,4 @@
+# Como cifar10_ham_weighted, con la rama aditiva escalada por 1/sqrt(d) (misma escala que dot).
+base: cifar10_ham_weighted.yaml
+model:
+  attention: {branches: [dot, additive_free_scaled]}

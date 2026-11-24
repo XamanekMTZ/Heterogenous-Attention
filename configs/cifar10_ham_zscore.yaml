@@ -1,0 +1,8 @@
+# Fusión de scores con cada rama estandarizada por fila y escala aprendida por rama,
+# λ aprendido desde 0.5. Corrige la diferencia de rango entre dot y Σ tanh.
+base: _cifar10.yaml
+model:
+  attention:
+    branches: [dot, additive_free]
+    fusion: zscore_score
+    fusion_kwargs: {lambda_: 0.5, learnable: true}

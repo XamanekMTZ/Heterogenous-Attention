@@ -1,0 +1,6 @@
+# Control de capacidad de ham_concat_local_k5: el MLP de dot_wide (217) con local 5x5, para tener
+# casi los mismos parámetros (≈133,982 contra 133,898) sin la rama HAM.
+base: _cifar10.yaml
+model:
+  intermediate_size: 217
+  attention: {branches: [dot], enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

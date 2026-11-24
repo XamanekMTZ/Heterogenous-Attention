@@ -1,0 +1,3 @@
+base: _svhn.yaml
+model:
+  attention: {branches: [dot]}

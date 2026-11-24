@@ -1,0 +1,5 @@
+# Como cifar10_ham_concat_local_k5 (la tríada: dot + aditiva pooling + local 5x5), en PlantVillage.
+# fase17_pv lo corre con batch 128 (pareado con dot_b128 y con su control de capacidad).
+base: _plantvillage.yaml
+model:
+  attention: {branches: [dot, additive], fusion: concat_linear, enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

@@ -1,0 +1,5 @@
+# Baseline SPT + LSA (Lee et al., 2021, ViT para conjuntos pequeños): 129,002 parámetros.
+base: _cifar10.yaml
+model:
+  patch_embed: spt
+  attention: {branches: [lsa]}

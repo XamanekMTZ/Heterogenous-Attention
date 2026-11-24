@@ -1,0 +1,4 @@
+# HAM: suma de scores, softmax(s_dot + s_bahdanau) (notebook 009, "Suma").
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive_free], fusion: sum_score}

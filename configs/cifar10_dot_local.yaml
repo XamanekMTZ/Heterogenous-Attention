@@ -1,0 +1,5 @@
+# Enriquecimiento local (LePE): out += DWConv3x3(v) sobre la rejilla de parches, por cabeza y canal.
+# Arranca en 0 (idéntico a dot con la misma semilla). +1,920 parámetros (4 capas × 480).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [local]}

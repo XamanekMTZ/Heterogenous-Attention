@@ -1,0 +1,4 @@
+# La tríada: dot + resumen global (aditiva pooling) con concat_linear + término local 5x5.
+base: _svhn.yaml
+model:
+  attention: {branches: [dot, additive], fusion: concat_linear, enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

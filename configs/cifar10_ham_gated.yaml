@@ -1,0 +1,4 @@
+# Mezcla de salidas con compuerta por token: g_i = softmax(W [out_dot ‖ out_add]_i), arranca en 0.5.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive], fusion: gated_output}

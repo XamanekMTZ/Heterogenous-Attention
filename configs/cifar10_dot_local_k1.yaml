@@ -1,0 +1,5 @@
+# Control de dot_local: el mismo camino out += conv(v), pero con kernel 1x1 (sin mezcla espacial).
+# Si la ganancia de dot_local desaparece, viene de la vecindad y no del camino de valores extra.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [local], enrich_kwargs: {local: {kernel: 1}}}

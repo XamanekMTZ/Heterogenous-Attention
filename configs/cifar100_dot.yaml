@@ -1,0 +1,3 @@
+base: _cifar100.yaml
+model:
+  attention: {branches: [dot]}

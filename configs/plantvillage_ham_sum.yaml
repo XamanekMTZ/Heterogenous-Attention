@@ -1,0 +1,6 @@
+# HAM: suma de scores, softmax(s_dot + s_bahdanau).
+# ATENCIÓN: additive_free materializa [B,N,N,d] (N=257). Pico medido en RTX 5080: batch 256 no cabe en 16 GB;
+# batch 128 usa ~8.4 GB (fp32). fase4 de scripts/run_paper.sh lo corre con batch 128.
+base: _plantvillage.yaml
+model:
+  attention: {branches: [dot, additive_free], fusion: sum_score}

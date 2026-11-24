@@ -1,0 +1,6 @@
+# Control de capacidad: dot con MLP más ancho (217 en lugar de 192) para tener los mismos
+# parámetros que cifar10_ham_concat (128,990 contra 128,906).
+base: _cifar10.yaml
+model:
+  intermediate_size: 217
+  attention: {branches: [dot]}

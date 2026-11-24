@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this code or these records, please cite them as below."
+title: "Heterogeneous Attention: code and experiment records for small Vision Transformers"
+type: software
+authors:
+  - family-names: "Martínez-Marín"
+    given-names: "Xamanek"
+repository-code: "https://github.com/XamanekMTZ/Heterogenous-Attention"
+doi: "10.5281/zenodo.24452704"
+license: MIT
+keywords:
+  - vision transformers
+  - heterogeneous attention
+  - inductive bias
+  - local attention
+  - depthwise convolution
+  - calibration
+# PENDIENTE: tras la publicación, añadir preferred-citation con el artículo.

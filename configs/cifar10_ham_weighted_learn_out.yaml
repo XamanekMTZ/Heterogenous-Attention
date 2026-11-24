@@ -1,0 +1,5 @@
+# Espejo de cifar10_ham_weighted_learn después del softmax: λ aprendido por cabeza desde 0.85.
+base: cifar10_ham_weighted_out.yaml
+model:
+  attention:
+    fusion_kwargs: {lambda_: 0.85, learnable: true}

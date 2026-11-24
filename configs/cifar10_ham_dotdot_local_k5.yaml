@@ -1,0 +1,5 @@
+# Control de ham_concat_local_k5: dos ramas dot idénticas con concat_linear (proyección por cabeza sin
+# rama global) más local 5x5. Separa el efecto de la proyección del de la rama aditiva pooling.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, dot], fusion: concat_linear, enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

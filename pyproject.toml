@@ -1,0 +1,28 @@
+[project]
+name = "ham"
+version = "0.1.0"
+description = "Heterogeneous Attention Mechanisms (HAM) for Vision Transformers — reproducible research code"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.2",
+    "torchvision>=0.17",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "tqdm>=4.66",
+    "matplotlib>=3.8",
+    "scipy>=1.11",  # anotaciones .mat de Stanford Cars
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ham"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

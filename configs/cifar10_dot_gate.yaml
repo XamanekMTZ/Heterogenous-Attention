@@ -1,0 +1,4 @@
+# Compuerta de salida por token, cabeza y canal: out ⊙ 2σ(W_g x) (Gated Attention). Arranca en 1.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [gate]}

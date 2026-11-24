@@ -1,0 +1,4 @@
+# dot_local con vecindad 5x5 (en una rejilla de 8x8 parches).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

@@ -1,0 +1,6 @@
+# Baseline ConViT (d'Ascoli et al., 2021): GPSA en todas las capas, con MLP de 205 para igualar
+# los parámetros de dot_local_k5 (124,398 contra 124,282).
+base: _cifar10.yaml
+model:
+  intermediate_size: 205
+  attention: {branches: [gpsa]}

@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+# datos (públicos; se descargan aparte)
+data/
+# registros extraídos de records/runs.tar.gz y salidas nuevas
+runs/
+runs_*/
+paper/ieee/
+# artefactos de LaTeX
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz
+paper/**/main.pdf

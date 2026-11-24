@@ -1,0 +1,7 @@
+# Heterogeneidad entre cabezas: 2 cabezas dot y 2 aditivas pooling por capa, sin fusión
+# (las mezcla out_proj). Sin competencia por q, k dentro de una cabeza.
+base: _cifar10.yaml
+model:
+  attention:
+    branches: [dot]
+    head_branches: [[dot], [dot], [additive], [additive]]

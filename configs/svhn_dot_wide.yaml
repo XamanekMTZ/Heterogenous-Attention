@@ -1,0 +1,5 @@
+# Control de capacidad de ham_concat: MLP de 217.
+base: _svhn.yaml
+model:
+  intermediate_size: 217
+  attention: {branches: [dot]}

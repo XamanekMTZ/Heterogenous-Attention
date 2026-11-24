@@ -1,0 +1,6 @@
+# Como cifar10_ham_weighted, pero λ se aprende por cabeza (inicia en 0.85).
+# Los valores por época quedan en metrics.json (fusion_lambda[capa][cabeza]).
+base: cifar10_ham_weighted.yaml
+model:
+  attention:
+    fusion_kwargs: {lambda_: 0.85, learnable: true}

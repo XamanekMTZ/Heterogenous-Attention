@@ -1,0 +1,4 @@
+base: base.yaml
+data: {name: food101}
+model: {image_size: 192, patch_size: 8}
+train: {epochs: 50, batch_size: 128}

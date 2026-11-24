@@ -1,0 +1,5 @@
+# Rama additive_free sola (sin dot), para separar el efecto de la rama del de la fusión en
+# plantvillage_ham_sum. Materializa [B,N,N,d]: correr con train.batch_size=128 (fase 6).
+base: _plantvillage.yaml
+model:
+  attention: {branches: [additive_free]}

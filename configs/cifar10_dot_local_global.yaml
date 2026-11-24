@@ -1,0 +1,4 @@
+# Heterogeneidad de sesgos inductivos a nivel de salida: pares (dot) + local (conv) + global (pooling).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [local, global]}

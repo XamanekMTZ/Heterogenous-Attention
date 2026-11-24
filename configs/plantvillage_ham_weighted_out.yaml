@@ -1,0 +1,7 @@
+# Espejo de plantvillage_ham_weighted después del softmax: (λ·A_dot + (1-λ)·A_bahdanau) v, λ=0.85 fijo.
+# Materializa [B,N,N,d] (N=257): correr con train.batch_size=128 (fase_salidas).
+base: plantvillage_ham_weighted.yaml
+model:
+  attention:
+    fusion: weighted_output
+    fusion_kwargs: {lambda_: 0.85, learnable: false}

@@ -1,0 +1,120 @@
+% Section III: Methodology
+\section{Methodology}
+\label{sec:metodologia}
+
+\subsection{Vision Transformer Architecture}
+\label{sec:vit}
+
+\subsubsection{Overview}
+All experiments use the same small pre-norm Vision Transformer (ViT) \citep{dosovitskiy2021image}: hidden dimension $D=48$, $L=4$ blocks, $H=4$ heads of dimension $d=D/H=12$, a multilayer perceptron (MLP) with a 192-unit hidden layer and GELU activation \citep{hendrycks2016gelu}, and a dropout of 0.1 on the projections, the MLP, the residual connections and the attention weights. With these dimensions the base model has 119,290 parameters. Each block computes
+\begin{align}
+  \mathbf{X}' &= \mathbf{X} + \operatorname{MHA}\big(\operatorname{LN}(\mathbf{X})\big), \\
+  \mathbf{X}'' &= \mathbf{X}' + \operatorname{MLP}\big(\operatorname{LN}(\mathbf{X}')\big),
+\end{align}
+with $\operatorname{LN}$ layer normalization \citep{ba2016layer}. Classification uses a linear layer on the class token (CLS) of the last layer, after a final normalization. A model of this size was chosen so that each variant could be trained with many seeds and the full protocol (Section~\ref{sec:entrenamiento}); the price is that the results refer to small ViTs trained from scratch on small datasets.
+
+\subsubsection{Image Representation as Tokens}
+An $S\times S$-pixel image is split into $P\times P$ patches, which are projected to dimension $D$ with a stride-$P$ convolution. A learned CLS token is prepended and a learned position encoding is added, so the sequence has $N = 1 + (S/P)^2$ tokens. On CIFAR-10 ($S=32$, $P=4$) the patches form an $8\times8$ grid and $N=65$; on PlantVillage ($S=64$, $P=4$), a $16\times16$ grid and $N=257$.
+
+\subsubsection{Self-Attention Mechanism}
+Each head $h$ projects the normalized input $\mathbf{X}\in\mathbb{R}^{N\times D}$ to queries, keys and values $\mathbf{Q}_h,\mathbf{K}_h,\mathbf{V}_h\in\mathbb{R}^{N\times d}$ with a single shared linear projection $\mathbf{W}_{qkv}$. Scaled dot-product attention \citep{vaswani2017attention}, which we call \var{dot}, is
+\begin{equation}
+  \mathbf{A}_h = \softmax\!\left(\frac{\mathbf{Q}_h\mathbf{K}_h^\top}{\sqrt{d}}\right), \qquad
+  \mathbf{O}_h = \mathbf{A}_h \mathbf{V}_h,
+  \label{eq:dot}
+\end{equation}
+with the \emph{softmax} taken row-wise: row $i$ of $\mathbf{A}_h$ is the distribution with which token $i$ combines the values of all tokens. The head outputs are concatenated and passed through an output projection, $\operatorname{MHA}(\mathbf{X}) = [\mathbf{O}_1\Vert\cdots\Vert\mathbf{O}_H]\,\mathbf{W}_o$.
+
+\subsection{Heterogeneous Attention Mechanisms}
+\label{sec:ham}
+A heterogeneous attention mechanism (HAM) combines, within a head, more than one way of mixing the values. Two families were studied: the combination of two attention functions over the same $\mathbf{Q}_h,\mathbf{K}_h,\mathbf{V}_h$ (Section~\ref{sec:fusiones}), which is the original HAM formulation, and the addition of terms with complementary inductive biases to the head output (Section~\ref{sec:terminos}). To simplify notation, the index $h$ is omitted.
+
+\subsubsection{Attention Branches}
+Besides \var{dot}, three variants of additive attention were used:
+\begin{itemize}
+  \item \textbf{Pooling-type additive} (\var{additive}). One score per token, $s_j = \mathbf{w}^\top\tanh(\mathbf{W}_q\mathbf{q}_j + \mathbf{W}_k\mathbf{k}_j) + b$, a single context vector $\mathbf{c} = \sum_j \softmax(\mathbf{s})_j\,\mathbf{v}_j$, and the same output $\mathbf{c}$ for every token. It does not compare pairs of tokens: it is a global summary of the image, with $O(Nd)$ memory.
+  \item \textbf{Pairwise additive} (Bahdanau \citep{bahdanau2015neural}). $e_{ij} = \mathbf{w}^\top\tanh(\mathbf{W}_q\mathbf{q}_i + \mathbf{W}_k\mathbf{k}_j)$ and $\mathbf{A}=\softmax(\mathbf{E})$.
+  \item \textbf{Free additive} (\var{additive\_free}). The pairwise version without its own parameters, $e_{ij} = \sum_{c=1}^{d}\tanh(q_{ic} + k_{jc})$, and its variant scaled by $1/\sqrt{d}$. Unlike \eqref{eq:dot}, it cannot be written as a matrix product and materializes an $N\times N\times d$ tensor per head.
+\end{itemize}
+
+\subsubsection{Two-Branch Fusions}
+\label{sec:fusiones}
+Let $\mathbf{S}_1,\mathbf{S}_2$ be the pre-\emph{softmax} scores of two pairwise branches and $\mathbf{A}_b=\softmax(\mathbf{S}_b)$. Three levels of fusion were evaluated:
+\begin{itemize}
+  \item \textbf{Concatenation} (\var{concat\_linear}): $\mathbf{O} = [\mathbf{A}_1\mathbf{V}\,\Vert\,\mathbf{A}_2\mathbf{V}]\,\mathbf{W}_f + \mathbf{b}_f$, with $\mathbf{W}_f\in\mathbb{R}^{2d\times d}$ per head. It also admits the \emph{pooling} branch; the combination \var{dot} + \var{additive} is \var{ham\_concat}.
+  \item \textbf{Score mixing}: $\mathbf{O}=\softmax\big(\lambda\mathbf{S}_1 + (1-\lambda)\mathbf{S}_2\big)\mathbf{V}$, with $\lambda$ fixed (\var{ham\_weighted}, $\lambda=0.85$), learned per head (\var{ham\_weighted\_learn}) or with the sum $\mathbf{S}_1+\mathbf{S}_2$ (\var{ham\_sum}). Since $\softmax(\lambda\mathbf{S}_1 + (1-\lambda)\mathbf{S}_2) \propto \mathbf{A}_1^{\lambda}\odot\mathbf{A}_2^{1-\lambda}$ row by row, this fusion is a \emph{product} of distributions. A version with row-standardized scores and a learned scale per branch (\var{ham\_zscore}) was also tested.
+  \item \textbf{Output mixing}: $\mathbf{O} = \lambda\,\mathbf{A}_1\mathbf{V} + (1-\lambda)\,\mathbf{A}_2\mathbf{V} = \big(\lambda\mathbf{A}_1 + (1-\lambda)\mathbf{A}_2\big)\mathbf{V}$, a mixture of distributions after the \emph{softmax}, with $\lambda$ learned (\var{ham\_wout}, \var{ham\_weighted\_learn\_out}) or with a per-token gate $\mathbf{g}_i = \softmax(\mathbf{W}_g[\mathbf{o}_{1i}\Vert\mathbf{o}_{2i}])$ (\var{ham\_gated}).
+\end{itemize}
+Finally, \var{ham\_heads} assigns different branches to different heads (two \var{dot} and two \emph{pooling}), with no fusion within the head.
+
+\subsubsection{Output Terms with Complementary Inductive Biases}
+\label{sec:terminos}
+The second family does not add another similarity function: it adds to the output of each head, before $\mathbf{W}_o$, terms that bring information that pairwise attention does not have.
+\begin{itemize}
+  \item \textbf{Local term} (\var{local}). A $k\times k$ channel-separable (depthwise) convolution over the values, arranged on the patch grid:
+  \begin{equation}
+    \mathbf{O} \leftarrow \mathbf{O} + \dwconv_{k\times k}\big(\mathbf{V}_{\text{patches}}\big),
+    \label{eq:local}
+  \end{equation}
+  with an independent filter for each channel of each head ($Hd$ groups) and padding that preserves the grid size; the CLS receives 0. It is the locally-enhanced positional encoding (LePE) of CSWin \citep{dong2022cswin}. It costs $Hd(k^2+1)$ parameters per layer: 480 with $k=3$ and 1,248 with $k=5$.
+  \item \textbf{Gate} (\var{gate}): $\mathbf{O}\leftarrow\mathbf{O}\odot 2\sigma(\mathbf{X}\mathbf{W}_g + \mathbf{b}_g)$ per token, head and channel, as in \emph{Gated Attention} \citep{qiu2025gated}. It introduces a nonlinearity between $\mathbf{W}_v$ and $\mathbf{W}_o$, which would otherwise compose into a single linear map.
+  \item \textbf{Residual global context} (\var{global}): $\mathbf{O}\leftarrow\mathbf{O} + \bm{\alpha}\odot\mathbf{c}$, with $\mathbf{c}$ the context of the \emph{pooling} branch and $\bm{\alpha}\in\mathbb{R}^{d}$ a per-channel scale.
+\end{itemize}
+The three terms start at the identity (convolution weights and $\bm{\alpha}$ at zero; gate equal to 1) and are initialized with a separate random generator. Consequently, with the same seed, a model with output terms starts with exactly the same weights and the same outputs as \var{dot}, and any difference is due to what it learns. The terms are applied after the fusion, so they are compatible with any branch or fusion. The most complete model, \var{ham\_concat\_local\_k5}, computes in each head
+\begin{equation}
+  \mathbf{O} = \big[\mathbf{A}^{\text{dot}}\mathbf{V}\,\Vert\,\mathbf{1}\mathbf{c}^\top\big]\,\mathbf{W}_f + \mathbf{b}_f + \dwconv_{5\times5}(\mathbf{V}_{\text{patches}}),
+  \label{eq:final}
+\end{equation}
+that is, it combines three inductive biases in each head, each in its own term: global pairwise similarity ($\mathbf{A}^{\text{dot}}\mathbf{V}$), a global summary of the image ($\mathbf{1}\mathbf{c}^\top$) and spatial neighborhood ($\dwconv_{5\times5}$). From here on we call it the \emph{triad}. Fig.~\ref{fig:triada} shows its place in the encoder block. The two attention branches are combined after the \emph{softmax}, and the local term is added outside the fusion, so none of the three biases can cancel another, as happens when scores are mixed.
+
+\begin{figure*}[!t]
+\begin{anchocompleto}
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=1.8mm]},
+  op/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, minimum height=0.62cm, fill=white},
+  dot/.style={op, fill=blue!7}, glob/.style={op, fill=orange!10}, loc/.style={op, fill=green!9},
+  sum/.style={draw, circle, inner sep=0.5pt, font=\small},
+  lab/.style={font=\scriptsize\itshape, text=black!65}]
+  % (a) encoder block
+  \node[op] (x) at (0,0) {$\mathbf{X}^{(\ell)}$};
+  \node[op, above=0.35cm of x] (ln1) {LayerNorm};
+  \node[op, above=0.35cm of ln1, minimum width=2.5cm] (mha) {$H$ triad heads\\$\to\ \mathbf{W}_o$};
+  \node[sum, above=0.35cm of mha] (r1) {$+$};
+  \node[op, above=0.35cm of r1] (ln2) {LayerNorm};
+  \node[op, above=0.35cm of ln2] (mlp) {MLP ($D\to4D\to D$)};
+  \node[sum, above=0.35cm of mlp] (r2) {$+$};
+  \node[op, above=0.35cm of r2] (y) {$\mathbf{X}^{(\ell+1)}$};
+  \foreach \a/\b in {x/ln1, ln1/mha, mha/r1, r1/ln2, ln2/mlp, mlp/r2, r2/y} \draw[->] (\a) -- (\b);
+  \draw[->] (x.west) -- ++(-0.45,0) |- (r1.west);
+  \draw[->] (r1.east) -- ++(1.35,0) |- (r2.east);
+  \node[lab, below=0.15cm of x] {(a) encoder block, $\times L$};
+  % (b) one head of the triad
+  \begin{scope}[xshift=7.6cm]
+    \node[op] (in) at (0,0) {$\mathbf{X}\mathbf{W}_{qkv}\ \to\ \mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$};
+    \node[dot] (att) at (-3.45,1.55) {\textit{pairwise similarity}\\$\mathbf{A}^{\text{dot}}=\softmax\!\big(\mathbf{Q}\mathbf{K}^\top/\sqrt{d}\big)$};
+    \node[dot, above=0.35cm of att] (av) {$\mathbf{A}^{\text{dot}}\mathbf{V}$};
+    \node[glob] (pool) at (1.45,1.55) {\textit{global summary}\\$s_j=\mathbf{w}^\top\tanh(\mathbf{W}_q\mathbf{q}_j+\mathbf{W}_k\mathbf{k}_j)+b$\\$\mathbf{c}=\sum_j\softmax(\mathbf{s})_j\,\mathbf{v}_j$};
+    \node[glob, above=0.35cm of pool] (bc) {$\mathbf{1}\mathbf{c}^\top$};
+    \node[op, fill=black!4] (fus) at (-0.9,3.95) {$[\,\cdot\,\Vert\,\cdot\,]\,\mathbf{W}_f+\mathbf{b}_f$};
+    \node[loc] (dw) at (5.55,2.45) {\textit{neighborhood}\\$\dwconv_{5\times5}(\mathbf{V})$\\on the patch grid};
+    \node[sum] (s) at (-0.9,4.95) {$+$};
+    \node[op, above=0.3cm of s] (o) {$\mathbf{O}\in\mathbb{R}^{N\times d}$};
+    \draw[->] (in.west) -| (att.south);
+    \draw[->] (in.north -| pool) -- (pool);
+    \draw[->] (in.east) -| (dw.south);
+    \draw[->] (att) -- (av); \draw[->] (pool) -- (bc);
+    \draw[->] (av.north) |- (fus.west); \draw[->] (bc.north) |- (fus.east);
+    \draw[->] (fus) -- (s); \draw[->] (dw.north) |- (s.east); \draw[->] (s) -- (o);
+    \node[lab, below=0.15cm of in] {(b) one head of the triad, Eq.~\eqref{eq:final}};
+  \end{scope}
+\end{tikzpicture}
+\end{anchocompleto}
+\caption{Evaluated architecture. (a) Pre-norm ViT block. (b) Each head of the triad \var{ham\_concat\_local\_k5} combines three biases in separate terms: dot-product attention (pairwise similarity), the additive \emph{pooling} branch (a single summary $\mathbf{c}$ replicated to the $N$ tokens), both fused after the \emph{softmax} by concatenation and projection, and a $5\times5$ depthwise convolution over the patch values, added outside the fusion and initialized at zero (the CLS receives 0). Without the \emph{pooling} branch and the fusion it is \var{dot\_local\_k5}; without the local term it is \var{ham\_concat}; without both, \var{dot}.}
+\label{fig:triada}
+\end{figure*}
+
+In the last layer only the CLS reaches the loss, and the local term does not act on the CLS; therefore the convolution of layer 4 receives no gradient and stays at zero. The local term is effective in layers 1 to 3: of its 4,992 parameters, 3,744 (3.1~\% of \var{dot}) are effective, and removing it from layer 4 would give the same model with 1,248 fewer parameters.
+
+Table~\ref{tab:parametros} breaks down the parameters of the four main architectures, counted on the built model: the \emph{pooling} branch adds 4,816, the fusion 4,800 and the $5\times5$ local term 4,992, for a total of 133,898 in \var{ham\_concat\_local\_k5}, 12.2~\% more than \var{dot} (132,650 and 11.2~\% counting only the effective parameters).
+
+\input{tablas/parametros}

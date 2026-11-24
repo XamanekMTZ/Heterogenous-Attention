@@ -1,0 +1,4 @@
+# Como cifar10_dot_local_gate, en PlantVillage (rejilla 16x16). fase10_pv lo corre con batch 128 (pareado con dot_b128).
+base: _plantvillage.yaml
+model:
+  attention: {branches: [dot], enrich: [local, gate]}

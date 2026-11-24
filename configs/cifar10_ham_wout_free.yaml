@@ -1,0 +1,5 @@
+# Suma ponderada de salidas con la rama additive_free: mezcla de probabilidades
+# (λ·A_dot + (1-λ)·A_add) v, frente a la mezcla de scores de ham_weighted_learn.
+base: cifar10_ham_wout.yaml
+model:
+  attention: {branches: [dot, additive_free]}

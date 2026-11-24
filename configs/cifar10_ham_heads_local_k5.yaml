@@ -1,0 +1,9 @@
+# ham_heads (2 cabezas dot + 2 aditiva pooling, sin fusión) con local 5x5: el resumen global de
+# ham_concat_local_k5 sin concat_linear, a menor costo. Se compara contra dot_local_k5 y ham_concat_local_k5.
+base: _cifar10.yaml
+model:
+  attention:
+    branches: [dot]
+    head_branches: [[dot], [dot], [additive], [additive]]
+    enrich: [local]
+    enrich_kwargs: {local: {kernel: 5}}

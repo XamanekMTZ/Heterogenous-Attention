@@ -1,0 +1,8 @@
+# HAM: fusión ponderada de scores, softmax(λ·s_dot + (1-λ)·s_bahdanau), λ fijo.
+# Bahdanau sin parámetros (sum_d tanh(q_i + k_j)), como en los notebooks 009/011.
+base: _cifar10.yaml
+model:
+  attention:
+    branches: [dot, additive_free]
+    fusion: weighted_score
+    fusion_kwargs: {lambda_: 0.85, learnable: false}

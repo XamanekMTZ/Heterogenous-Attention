@@ -1,0 +1,53 @@
+% Section II: Related work
+\section{Related Work}
+\label{sec:trabajos}
+CNNs dominated visual learning thanks to their biases of spatial locality and weight sharing. Self-attention \cite{vaswani2017attention} relates any two positions directly, at a cost quadratic in the number of tokens, $O(n^2 d)$, and the ViT \cite{dosovitskiy2021image} applied it to images split into $16\times16$ patches.
+
+Three routes have been followed to make up for the lack of local biases in ViTs (Table~\ref{tab:literatura}).
+\begin{itemize}
+  \item \textbf{Convolution--Transformer hybrids.} LeViT \cite{graham2021levit} prepends a convolutional stage and reduces the resolution by stages. MobileViT \cite{mehta2022mobilevit} interleaves MobileNet blocks with blocks that combine convolutions and attention over unfolded patches. CMT \cite{guo2022cmt} interleaves convolutional blocks. CvT \cite{wu2021cvt} uses convolutions in the token embedding and in the query, key and value projections of each stage.
+  \item \textbf{Attention restricted to windows.} Swin \cite{liu2021swin} computes attention within local $M\times M$ windows, at a cost of $O(N M^2 d)$, and shifts them between layers to connect them; no layer has a direct global interaction.
+  \item \textbf{Convolutions injected into attention, position or the MLP.}
+  \begin{itemize}
+    \item ConViT \cite{dascoli2021convit} initializes attention as a convolution, with a learned gate that weighs the positional part against the content part.
+    \item CSWin \cite{dong2022cswin} adds a depthwise convolution over the values to the attention output (LePE).
+    \item Conditional position encodings \cite{chu2023conditional} generate the position with a convolution.
+    \item LocalViT \cite{li2021localvit} inserts a depthwise convolution into the feed-forward network.
+  \end{itemize}
+\end{itemize}
+For small datasets, Lee \emph{et al.} \cite{lee2021vision} propose tokenizing with shifted patches (SPT) and learning the attention temperature while masking the diagonal (LSA), and Xiao \emph{et al.} \cite{xiao2021early} show that replacing the patch projection with a convolutional stem stabilizes training. These architectures were designed and evaluated at scales of millions of parameters (28 to 88 million in Swin) and change several components at once. Section~\ref{sec:res-baselines} reimplements four of them (LocalViT, SPT+LSA, ConViT and the convolutional stem), together with a ResNet, with the budget and protocol of this work.
+
+Locality can also come from the data. CutMix \cite{yun2019cutmix}, Mixup \cite{zhang2018mixup} and RandAugment \cite{cubuk2020randaugment} are a standard part of training ViTs on little data, and Santiago Toledo and Martínez \cite{santiago2026inducing} found that CutMix, unlike other augmentations, suffices for a 2.4-million-parameter ViT to develop local heads. If that happened at any scale, an architectural neighborhood bias would be redundant with the training protocol; Section~\ref{sec:res-aumento} puts this to the test.
+
+Among attention mechanisms, additive attention \cite{bahdanau2015neural} is the classic alternative to the dot product, and the multiplicative gate after attention improves the stability of large language models \cite{qiu2025gated}. Reading attention weights as explanations is debated \cite{jain2019attention}; \emph{attention rollout} \cite{abnar2020quantifying} propagates them through the layers. The idea of combining two similarity functions within a head comes from the preliminary results that motivated this study (Section~\ref{sec:introduccion}). Here we show that mixing their scores before the \emph{softmax} amounts to multiplying the distributions of each branch (Section~\ref{sec:metodologia}).
+
+Compared with these works, the triad evaluated here:
+\begin{itemize}
+  \item keeps global dot-product attention in every layer, unlike Swin;
+  \item does not change the projections or the resolution, unlike CvT, LeViT or MobileViT;
+  \item adds the local bias as a zero-initialized residual term, the same as LePE, and a global summary combined after the \emph{softmax}.
+\end{itemize}
+Its goal is not to propose an architecture, but to measure how much each bias contributes on its own in a 119,290-parameter ViT trained from scratch, with capacity controls.
+
+\begin{table*}[!t]
+\centering
+\small
+\caption{Properties of representative architectures compared with the variants evaluated in this work.}
+\label{tab:literatura}
+\begin{anchocompleto}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{3.6cm}}
+\toprule
+Architecture & Attention mechanism & Local bias & Complexity & Main limitations \\
+\midrule
+ViT \cite{dosovitskiy2021image} & Scaled dot product ($\mathbf{Q}\mathbf{K}^\top/\sqrt{d}$) & None (position encoding only) & $O(N^2 d)$ & Needs large-scale pretraining; with little data it generalizes worse than a CNN. \\
+Swin \cite{liu2021swin} & Shifted-window attention & Local windows and relative position bias & $O(N M^2 d)$ & No direct global interactions within a single layer. \\
+CvT \cite{wu2021cvt} & Dot product with convolutional projections & Convolutions in the $\mathbf{Q},\mathbf{K},\mathbf{V}$ projections & $O(N^2 d) + O(N k^2 d)$ & Changes the projections of every layer. \\
+LeViT \cite{graham2021levit} & Dot product with positional attention bias & Initial convolutional stage and stage-wise resolution reduction & $O(N^2 d)$ per stage, on reduced grids & Changes the whole architecture; designed for fast inference. \\
+MobileViT \cite{mehta2022mobilevit} & Dot product over unfolded patches & MobileNet blocks and convolutions within each block & $O(P N^2 d)$, with $P$ pixels per patch & Designed for mobile devices; mixes convolution and attention in every block. \\
+CSWin / LePE \cite{dong2022cswin} & Cross-shaped window attention & Depthwise convolution over $\mathbf{V}$ added to the output & $O(N\sqrt{N} d) + O(N k^2 d)$ & Evaluated only together with cross-shaped window attention. \\
+LocalViT \cite{li2021localvit} & Scaled dot product & Depthwise convolution in the feed-forward network & $O(N^2 d) + O(N k^2 d)$ & The local bias is in the MLP, not in the attention output. \\
+This work (triad) & \var{dot}, global summary (additive \emph{pooling}) and concatenation (\var{ham\_concat}) & Depthwise $k\times k$ convolution over $\mathbf{V}$ in each head (LePE) & $O(N^2 d) + O(N k^2 d)$ & Costs 1.78 times the epoch time of \var{dot}, mostly because of the \emph{pooling} branch with the concatenation (1.68 times on its own). \\
+\bottomrule
+\end{tabular}
+\end{anchocompleto}
+\end{table*}

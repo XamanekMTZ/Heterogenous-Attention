@@ -1,0 +1,4 @@
+# HAM con atención aditiva por pares (Bahdanau) en lugar de la variante pooling.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive_pairwise], fusion: concat_linear}

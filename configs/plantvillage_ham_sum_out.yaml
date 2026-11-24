@@ -1,0 +1,5 @@
+# Espejo de plantvillage_ham_sum después del softmax: A_dot v + A_bahdanau v.
+# Materializa [B,N,N,d] (N=257): correr con train.batch_size=128 (fase_salidas).
+base: plantvillage_ham_sum.yaml
+model:
+  attention: {fusion: sum_output}

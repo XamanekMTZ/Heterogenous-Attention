@@ -1,0 +1,7 @@
+# Espejo de cifar10_ham_weighted después del softmax: (λ·A_dot + (1-λ)·A_bahdanau) v, λ fijo.
+# Mezcla de probabilidades en lugar de scores: λ sí es la proporción. λ 0.7 y 0.5 por override (fase_salidas).
+base: cifar10_ham_weighted.yaml
+model:
+  attention:
+    fusion: weighted_output
+    fusion_kwargs: {lambda_: 0.85, learnable: false}

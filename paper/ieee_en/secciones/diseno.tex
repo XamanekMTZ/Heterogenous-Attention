@@ -1,0 +1,101 @@
+% Section IV: Experimental design
+\section{Experimental Design}
+\label{sec:diseno}
+
+\subsection{Datasets}
+\begin{itemize}
+  \item \textbf{CIFAR-10} \citep{krizhevsky2009learning}: 10 classes, $32\times32$ images. From the official training set (50,000 images), 5,000 are held out for validation with a fixed split; the model is trained on the remaining 45,000 and evaluated on the official test set (10,000 images). It is the main dataset of the study.
+  \item \textbf{PlantVillage} \citep{hughes2015plantvillage}: 38 classes of healthy and diseased leaves, resized to $64\times64$. From the distributed training folder (43,444 images), 4,344 are held out for validation; the distributed validation folder (10,861 images) is used as the test set.
+  \item \textbf{CIFAR-100} \citep{krizhevsky2009learning} and \textbf{SVHN} \citep{netzer2011reading}: 100 classes and 10 digits, $32\times32$ images, with 10~\% of the official training set as validation (5,000 and 7,326 images) and the official test set (10,000 and 26,032). They were used in the scope experiments (Section~\ref{sec:res-alcance}).
+  \item \textbf{Food-101} \citep{bossard2014food}: 101 classes, images resized to $192\times192$ with patches of 8 ($N=577$); 75,750 official training images (10~\% for validation) and 25,250 test images. It was used only for the fusions of the first family.
+\end{itemize}
+Images are normalized with the per-channel mean and standard deviation of each dataset (those of ImageNet for PlantVillage and Food-101). Data augmentation is a random crop with 4-pixel padding and a horizontal flip, with no rescaling. To measure the dependence on data augmentation, a subset was repeated on CIFAR-10 without augmentation, and the key variants with two stronger protocols (Section~\ref{sec:diseno-alcance}).
+
+\subsection{Base Architecture and Variants}
+Table~\ref{tab:variantes} lists the CIFAR-10 variants with their parameters and their cost per epoch. Three controls were included:
+\begin{itemize}
+  \item \var{dot\_wide}: \var{dot} with the MLP hidden layer widened from 192 to 217 units, to match the parameters of \var{ham\_concat} (128,990 versus 128,906). It separates the effect of the extra branch from that of having more parameters.
+  \item \var{dot\_local\_k1}: the local term~\eqref{eq:local} with $k=1$, which keeps the extra path from the values to the output but does not mix neighboring patches. It separates the effect of the neighborhood from that of the architecture of the term.
+  \item \var{dot\_wide\_local\_k5}: the $5\times5$ local term on top of \var{dot\_wide}, with almost the same parameters as \var{ham\_concat\_local\_k5} (133,982 versus 133,898).
+\end{itemize}
+
+\input{tablas/variantes}
+
+\subsection{Training Parameters}
+\label{sec:entrenamiento}
+All variants share the same hyperparameters, with no per-variant search: AdamW \citep{loshchilov2019decoupled} with a learning rate of $10^{-3}$ and a weight decay of 0.05 (except for $\lambda$, the scales of the standardized fusion and $\bm{\alpha}$), a cosine schedule \citep{loshchilov2017sgdr} with 10 epochs of linear warmup, cross-entropy without label smoothing and single precision. On CIFAR-10 training lasts 400 epochs with batches of 256; on PlantVillage, 50 epochs with batches of 128 (the largest size at which the pairwise branches fit in 16~GB); on Food-101, 50 epochs with batches of 128. The model from the epoch with the best validation accuracy is kept and the test set is evaluated only once, on that model. Table~\ref{tab:hiperparametros} gathers all hyperparameters.
+
+\begin{table}[!t]
+\centering
+\footnotesize
+\caption{Hyperparameters, common to all variants unless stated otherwise.}
+\label{tab:hiperparametros}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{5.3cm}}
+\toprule
+Hyperparameter & Value \\
+\midrule
+\multicolumn{2}{l}{\textit{Model}} \\
+Image, patch, tokens & $32\times32$, $4\times4$, $N=65$ (CIFAR, SVHN); $64\times64$, $4\times4$, $N=257$ (PlantVillage); $192\times192$, $8\times8$, $N=577$ (Food-101) \\
+$D$, $L$, $H$, $d$ & 48, 4, 4, 12 \\
+MLP & 192 (217 in the capacity controls), GELU (tanh approximation) \\
+Normalization & LayerNorm before each sublayer, $\epsilon=10^{-6}$ \\
+Dropout & 0.1 on embedding, attention, projection, MLP and residuals \\
+Initialization & CLS and positions truncated $\mathcal{N}(0, 0.02)$; local term at zero; the rest, PyTorch default \\
+\midrule
+\multicolumn{2}{l}{\textit{Optimization}} \\
+Optimizer & AdamW, $\beta=(0.9, 0.999)$, $\epsilon=10^{-8}$ \\
+Learning rate & $10^{-3}$, cosine with 10 epochs of linear warmup \\
+Weight decay & 0.05 (0 on $\lambda$, fusion scales and $\bm{\alpha}$) \\
+Batch, epochs & 256, 400 (CIFAR-10 and CIFAR-100); 256, 100 (SVHN); 128, 50 (PlantVillage and Food-101) \\
+Loss & cross-entropy, no label smoothing \\
+Data augmentation & crop with 4-pixel padding and horizontal flip (no flip on SVHN) \\
+Precision & FP32, deterministic algorithms \\
+\midrule
+\multicolumn{2}{l}{\textit{Evaluation}} \\
+Selection & best validation accuracy; test evaluated once \\
+Seeds & 0--4; 0--15 in the main comparison; 0--47 in the primary contrast \\
+\midrule
+\multicolumn{2}{l}{\textit{Augmentation arms (Section~\ref{sec:res-aumento})}} \\
+CutMix & $\alpha=1$, probability 0.6 \\
+Strong augmentation & RandAugment (2 operations, magnitude 9), CutMix or Mixup ($\alpha=1$) on each batch, label smoothing 0.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each variant was trained with 5 seeds (0 to 4). The variants of the main comparison were later extended to 16 seeds (0 to 15). The seed fixes the initialization, the batch order, the data augmentation and the dropout masks; the training/validation split is the same for all. Training is deterministic: with the same code and the same seed the metrics are reproduced bit for bit, which allows comparisons to be paired by seed across experiments run at different times. Each run records the code commit. An NVIDIA RTX 5080 GPU was used with PyTorch 2.14 and CUDA 13.0, one run at a time.
+
+\subsection{Scope Experiments}
+\label{sec:diseno-alcance}
+For Section~\ref{sec:res-alcance}, four published locality mechanisms for ViTs and a ResNet of the same size were implemented with the same parameter budget as the variants of this work and without changing the hyperparameters of Table~\ref{tab:hiperparametros}:
+\begin{itemize}
+  \item \textbf{LocalViT} \citep{li2021localvit}: a $3\times3$ depthwise convolution and an activation between the two MLP layers, on the patch tokens (126,970 parameters).
+  \item \textbf{SPT+LSA} \citep{lee2021vision}: tokenization with the image shifted by half a patch along the four diagonals, and attention with a learned temperature and a masked diagonal (129,002).
+  \item \textbf{ConViT} \citep{dascoli2021convit}: attention with a gate between content and relative position, with the positional part initialized as a convolution, in all four layers; an MLP of 205 to match parameters (124,398).
+  \item \textbf{Convolutional stem} \citep{xiao2021early}: two stride-2 $3\times3$ convolutions with batch normalization and ReLU, and one $1\times1$ convolution, instead of the patch projection (130,450).
+  \item \textbf{ResNet} \citep{he2016deep}: three stages of one basic block, with 20, 40 and 80 channels (121,390).
+\end{itemize}
+The five key variants (\var{dot}, \var{dot\_wide}, \var{dot\_local\_k5}, \var{dot\_wide\_local\_k5} and the triad) were repeated with two additional augmentation protocols (Table~\ref{tab:hiperparametros}), on CIFAR-100 and SVHN, and with 10, 25 and 50~\% of the CIFAR-10 training set (\var{dot\_wide} was not run with fractions). The fractions are a fixed subset, the same for all seeds. For model size, $D$ and $L$ were varied with 4 heads and an MLP of $4D$, and only \var{dot} and \var{dot\_local\_k5} were compared, with seeds 0 to 2. The resulting sizes of \var{dot} are 119,290, 232,378, 459,754, 907,114, 1,804,234 and 3,583,690 parameters.
+
+\subsection{Attention and Model Analysis}
+\label{sec:analisis}
+\subsubsection{Statistics} For each pair of variants, the per-seed difference in test accuracy, $\Delta_s$, is computed, and we report its mean with a Student's $t$ 95~\% confidence interval (CI), the number of seeds with $\Delta_s>0$, the $p$-value of the paired $t$-test and, with 16 seeds, that of the Wilcoxon signed-rank test \citep{wilcoxon1945individual}. Within each table, multiple comparisons are corrected with the Holm method \citep{holm1979simple}, which is step-down: with $m$ comparisons, the $i$-th smallest $p$-value is multiplied by $m-i+1$ (and the running maximum is taken), so only the smallest is multiplied by $m$. The primary contrast of the triad against its capacity control with 48 seeds was declared as a single test before running seeds 16 to 47 and is reported uncorrected; in the criteria table, which groups eight comparisons, it is also reported corrected. Comparisons between groups with different numbers of seeds use the Mann--Whitney test and, for proportions, Fisher's exact test.
+
+\subsubsection{Classification, Calibration and Robustness} Besides accuracy, we report the macro F1, the negative log-likelihood (NLL) and the expected calibration error (ECE) with 15 equal-width bins \citep{guo2017calibration}. Robustness is measured as the accuracy on the full test set under three synthetic perturbations \citep{hendrycks2019benchmarking}: Gaussian noise ($\sigma\in\{0.05, 0.1, 0.2\}$ on the image in $[0,1]$), Gaussian blur ($\sigma\in\{0.5, 1, 1.5\}$ pixels) and occlusion of a random fraction of the patches (10, 25 and 50~\%).
+
+\subsubsection{Attention Metrics} On 1,000 test images, for each layer and branch, we compute:
+\begin{itemize}
+  \item the \textbf{normalized entropy} of each attention row, $H(\mathbf{a}_i)/\log N$ (1 corresponds to a uniform distribution), averaged over rows and heads;
+  \item the \textbf{mean attention distance} \citep{dosovitskiy2021image}, in pixels, between each patch and the patches it attends to;
+  \item the \textbf{diversity between heads}, as the mean Jensen--Shannon divergence (JS, base 2) between the rows of each pair of heads;
+  \item for fusions, the \textbf{JS between the attention applied to $\mathbf{V}$ and each branch}, which indicates whether the fusion reduces to one of them;
+  \item the \textbf{contribution} of each branch or term: the fraction of the mean per-token norm of the head output that it provides (for example, $\lVert\dwconv(\mathbf{V})\rVert$ against $\lVert\mathbf{A}\mathbf{V}\rVert$), normalized to sum to 1.
+\end{itemize}
+Heat maps are obtained with \emph{attention rollout} \citep{abnar2020quantifying} on the effective attention, with the residual connection weighted at 0.5. Since the maps of two seeds of the same model can differ substantially, every comparison between variants is made against the between-seed variation of the same variant, measured with the JS between the CLS maps. These maps have two limitations: rollout only traverses the attention weights, so it does not include the mixing done by the local term; and in \var{concat\_linear} the effective attention is the average of the branches, an approximation because that fusion mixes outputs with a matrix.
+
+\subsubsection{Efficiency and Cost} Relative costs are ratios of the epoch time to that of \var{dot} measured on the same GPU, unless another denominator is stated. Besides the epoch time, we record the first epoch at which validation accuracy reaches 79~\%, a threshold set before the output-term experiments because it is close to the final value of \var{dot} (79.9~\%), and the corresponding GPU time. A subset of variants was also trained for 100 epochs (3 of warmup) to compare its final accuracy with that of \var{dot} at 400. Because the epoch time depends on the GPU and on the implementation (the heads are computed in a loop; Section~\ref{sec:limitaciones}), we also report hardware-independent costs, measured on the seed-0 model of each variant (Table~\ref{tab:costos}): multiply--accumulate operations (MACs) per image at inference and training FLOPs per epoch (\emph{forward} and \emph{backward} over the 45,000 training images), counted with the PyTorch FLOP counter over matrix products and convolutions, and the peak memory of a training step with the protocol of Table~\ref{tab:hiperparametros}. We correct the count of the \emph{backward} pass of grouped convolutions, which in PyTorch ignores the number of groups. For inference we report the median latency with batch 1 on a CPU (AMD Ryzen 7 9700X, with one thread and with 16; 300 repetitions after 50 warm-up runs), the peak memory of intermediate tensors during a \emph{forward} pass and the size of the fp32 weights on disk. Element-wise operations (\emph{softmax}, $\tanh$, GELU, normalizations) are not counted as MACs; their cost shows up in the memory and the latency.
+
+\subsubsection{Criteria Set in Advance} To consider that a heterogeneous variant works, four criteria were set before running the experiments of each phase: (1) a significant gain over an equal-capacity control, with at least 10 seeds; (2) each branch or term contributes between 10 and 90~\% of the output in the layers where it acts; (3) the same sign on a second dataset; and (4) a cost of at most 1.5 times the epoch time of \var{dot}. Table~\ref{tab:criterios} summarizes their fulfillment.
+
+\subsection{Use of Generative AI}
+\label{sec:ia}
+Generative AI was used only to organize and compile the \LaTeX{} source of the article and to draft the cover letter: Claude Code (Anthropic; version 2.1.330, with the Claude Opus 5.5 model). The prompts were natural-language instructions from the authors. The authors reviewed and edited all output.

@@ -1,0 +1,5 @@
+# Control de capacidad: dos ramas dot con concat_linear (misma fusión que ham_concat, sin
+# rama aditiva). Si iguala a ham_concat, el efecto es de "dos ramas + proyección".
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, dot], fusion: concat_linear}

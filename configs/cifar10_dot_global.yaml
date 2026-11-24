@@ -1,0 +1,5 @@
+# Contexto global de la rama aditiva pooling de ham_concat, sumado con escala α por canal desde 0
+# (en lugar de concatenado y proyectado).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [global]}

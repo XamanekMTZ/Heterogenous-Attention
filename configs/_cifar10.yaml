@@ -1,0 +1,4 @@
+base: base.yaml
+data: {name: cifar10}
+model: {image_size: 32, patch_size: 4}
+train: {epochs: 400}

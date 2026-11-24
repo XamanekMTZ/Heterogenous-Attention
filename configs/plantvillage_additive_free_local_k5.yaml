@@ -1,0 +1,5 @@
+# Aditiva por pares sin parámetros (la mejor rama sola en PlantVillage) con local 5x5.
+# fase15_pv lo corre con batch 128 (pareado con dot_b128).
+base: plantvillage_additive_free.yaml
+model:
+  attention: {enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

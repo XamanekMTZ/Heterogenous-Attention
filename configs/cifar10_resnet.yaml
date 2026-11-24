@@ -1,0 +1,7 @@
+# CNN de referencia: ResNet de 3 etapas (20/40/80 canales, un bloque por etapa), 121,390 parámetros,
+# con el mismo protocolo de entrenamiento que los ViT.
+base: _cifar10.yaml
+model:
+  arch: resnet
+  cnn_widths: [20, 40, 80]
+  cnn_blocks: 1

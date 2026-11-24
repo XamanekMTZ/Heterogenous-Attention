@@ -1,0 +1,4 @@
+# HAM: dot + aditiva (pooling) por cabeza, fusionadas con Linear(concat).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive], fusion: concat_linear}

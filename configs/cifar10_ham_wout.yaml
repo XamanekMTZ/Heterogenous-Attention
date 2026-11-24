@@ -1,0 +1,8 @@
+# Suma ponderada de salidas (después del softmax): λ·A_dot v + (1-λ)·A_add v, con λ aprendido
+# por cabeza desde 0.5. Rama aditiva pooling (la de ham_concat).
+base: _cifar10.yaml
+model:
+  attention:
+    branches: [dot, additive]
+    fusion: weighted_output
+    fusion_kwargs: {lambda_: 0.5, learnable: true}

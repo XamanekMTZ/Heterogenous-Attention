@@ -1,0 +1,5 @@
+# Rama additive_free sola (sin dot): extremo λ=0 de las mezclas de salidas con [dot, additive_free].
+# Materializa [B,N,N,d] (N=65): misma memoria que ham_weighted.
+base: _cifar10.yaml
+model:
+  attention: {branches: [additive_free]}

@@ -1,0 +1,4 @@
+# Suma ponderada de salidas con la rama aditiva de Bahdanau (con W_q, W_k, w propios).
+base: cifar10_ham_wout.yaml
+model:
+  attention: {branches: [dot, additive_pairwise]}

@@ -1,0 +1,5 @@
+# Como plantvillage_ham_weighted_out, con la rama aditiva escalada por 1/sqrt(d).
+# Materializa [B,N,N,d]: correr con train.batch_size=128 (fase_salidas).
+base: plantvillage_ham_weighted_out.yaml
+model:
+  attention: {branches: [dot, additive_free_scaled]}

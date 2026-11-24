@@ -1,0 +1,5 @@
+# Como ham_concat, pero con la rama aditiva por pares sin parámetros (la de ham_weighted/sum):
+# softmax(Σ tanh(q_i + k_j)) v concatenada con la salida de dot.
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot, additive_free], fusion: concat_linear}

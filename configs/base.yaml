@@ -1,0 +1,37 @@
+# Valores por defecto comunes (equivalentes a config.py de 202506_Transformers).
+# Cada experimento hereda de un archivo de dataset (_<dataset>.yaml), que hereda de éste.
+seed: 0
+model:
+  image_size: 32
+  patch_size: 4
+  num_channels: 3
+  hidden_size: 48
+  num_layers: 4
+  num_attention_heads: 4
+  intermediate_size: 192
+  hidden_dropout_prob: 0.1
+  attention_probs_dropout_prob: 0.1
+  qkv_bias: true
+  attention:
+    branches: [dot]
+    fusion: concat_linear
+    fusion_kwargs: {}
+data:
+  root: data
+  val_fraction: 0.1
+  split_seed: 0
+  normalization: dataset
+  augment: standard  # legacy reproduce prelim y 202506_Transformers (escala distinta en test)
+  num_workers: 4
+train:
+  batch_size: 256
+  learning_rate: 0.001
+  weight_decay: 0.05
+  # Nota: en 202506_Transformers el scheduler estaba declarado pero desactivado
+  # (lr constante). Para replicar esos runs: train.scheduler=none
+  scheduler: cosine
+  warmup_epochs: 10
+  amp: false
+  deterministic: true
+  device: cuda  # sin GPU, el run falla en lugar de caer en silencio a la CPU (train.device=auto para permitirlo)
+  output_dir: runs

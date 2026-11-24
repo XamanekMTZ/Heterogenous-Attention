@@ -1,0 +1,6 @@
+# HAM: suma de scores, softmax(s_dot + s_bahdanau).
+# ATENCIÓN: additive_free materializa [B,N,N,d]; estimado ~65 GB (batch 128, N=577) de memoria de GPU.
+# Sólo para GPUs grandes (fase 4 de scripts/run_paper.sh).
+base: _food101.yaml
+model:
+  attention: {branches: [dot, additive_free], fusion: sum_score}

@@ -1,0 +1,5 @@
+# SVHN: sin volteo horizontal (dígitos); 73k imágenes de train, 100 épocas.
+base: base.yaml
+data: {name: svhn, augment: crop}
+model: {image_size: 32, patch_size: 4}
+train: {epochs: 100}

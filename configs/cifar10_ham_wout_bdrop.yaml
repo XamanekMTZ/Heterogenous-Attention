@@ -1,0 +1,6 @@
+# cifar10_ham_wout con branch dropout: en entrenamiento, el 20 % de las muestras usa una sola
+# rama elegida al azar, para que ninguna rama dependa de la otra.
+base: cifar10_ham_wout.yaml
+model:
+  attention:
+    fusion_kwargs: {lambda_: 0.5, learnable: true, branch_dropout: 0.2}

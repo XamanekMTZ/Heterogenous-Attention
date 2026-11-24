@@ -1,0 +1,4 @@
+# Local y luego compuerta (la compuerta también modula el término local).
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [local, gate]}

@@ -1,0 +1,5 @@
+# Como cifar10_ham_heads, con 2 cabezas aditivas por pares sin parámetros (additive_free).
+base: cifar10_ham_heads.yaml
+model:
+  attention:
+    head_branches: [[dot], [dot], [additive_free], [additive_free]]

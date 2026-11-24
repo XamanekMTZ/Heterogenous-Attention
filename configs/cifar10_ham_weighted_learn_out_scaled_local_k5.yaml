@@ -1,0 +1,5 @@
+# La mejor mezcla de salidas (dot + aditiva libre escalada, lambda aprendido desde 0.85) con local 5x5:
+# ¿una segunda similitud por pares aporta una vez resuelta la localidad?
+base: cifar10_ham_weighted_learn_out_scaled.yaml
+model:
+  attention: {enrich: [local], enrich_kwargs: {local: {kernel: 5}}}

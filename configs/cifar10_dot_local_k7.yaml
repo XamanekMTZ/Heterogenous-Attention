@@ -1,0 +1,5 @@
+# dot_local con vecindad 7x7: en la rejilla de 8x8 parches casi cubre la imagen. ¿La ganancia sigue
+# creciendo con la vecindad (k1 < k3 < k5) o se satura?
+base: _cifar10.yaml
+model:
+  attention: {branches: [dot], enrich: [local], enrich_kwargs: {local: {kernel: 7}}}

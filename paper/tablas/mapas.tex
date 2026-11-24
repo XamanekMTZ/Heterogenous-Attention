@@ -1,0 +1,19 @@
+% Generado por scripts/paper_tables.py a partir de los runs; no editar a mano.
+\begin{table}[tbp]
+\centering
+\small
+\caption{Divergencia de Jensen--Shannon entre mapas de \emph{rollout} del CLS en CIFAR-10 (500 imágenes de test, semillas 0--4). Entre semillas: media sobre los 10 pares de semillas de la variante. Contra \texttt{dot}: misma semilla. Razón: contra \texttt{dot} dividido entre la variación entre semillas de \texttt{dot}.}
+\label{tab:mapas}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+Variante & JS entre semillas & JS contra \texttt{dot} & Razón \\
+\midrule
+\texttt{dot} & 0.0062 & --- & --- \\
+\texttt{dot\_local} & 0.0033 & 0.0076 & 1.22 \\
+\texttt{dot\_local\_k5} & 0.0032 & 0.0096 & 1.54 \\
+\texttt{ham\_concat\_local\_k5} & 0.0055 & 0.0100 & 1.60 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}

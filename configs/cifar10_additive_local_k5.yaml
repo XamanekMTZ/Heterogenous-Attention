@@ -1,0 +1,5 @@
+# Sólo atención aditiva pooling (resumen global, sin pares) más local 5x5: ¿hace falta la atención
+# por pares cuando el modelo ya tiene vecindad y resumen global?
+base: _cifar10.yaml
+model:
+  attention: {branches: [additive], enrich: [local], enrich_kwargs: {local: {kernel: 5}}}
